@@ -1,20 +1,38 @@
-import requests
-import json
+from eleme.api import ElemeApi
 
-class RestaurantApiMaker:
-    def __init__(self, latitude, longitude):
-        self.api_url = 'https://mainsite-restapi.ele.me/shopping/restaurants?' \
-                       'latitude={}&longitude={}'.format(latitude, longitude)
 
-    def get_url(self, offset, limit):
-        return self.api_url + '&offset={}&limit={}'.format(offset, limit)
+def print_shops():
+    shop_list = ElemeApi.get_restaurants_by_location(limit=20)
+    for shop in shop_list:
+        print("-----------------------------{}--------------------------".format(shop['name']))
+        for key in shop:
+            print("{}:{}".format(key, shop[key]))
+    return shop_list
 
-url_maker = RestaurantApiMaker(32.119004, 118.928748)
-url = url_maker.get_url(10, 20)
-req = requests.request("GET", url)
-json_str = req.content
-json_str = json_str.decode('utf-8')
-json_obj = json.loads(json_str)
-for obj in json_obj:
-    print(obj)
 
+def print_menu(restaurant_id):
+    menu = ElemeApi.get_restaurant_menu(restaurant_id)
+    for category in menu:
+        for key in category:
+            print("{}:{}".format(key,category[key]))
+
+
+if __name__ == "__main__":
+    # get geo info
+    geo_info = ElemeApi.get_geohash(latitude=32.119, longitude=118.928)
+    print(geo_info)
+
+    # get shop list
+    shop_list = print_shops()
+
+    # get shop menu
+    print()
+    print()
+    print_menu(shop_list[0]['id'])
+
+    # get rate
+    print(ElemeApi.get_restaurant_score(shop_list[0]['id']))
+    print(ElemeApi.get_restaurant_feedback_tags(shop_list[0]['id']))
+
+    # get basic info
+    print(ElemeApi.get_restaurant_basic_info(shop_list[0]['id']))
